@@ -8,11 +8,16 @@ export async function middleware(request: NextRequest) {
     // Create authenticated Supabase client
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const isVerified = user?.user_metadata?.email_verified || false
 
-    // Authentication routes - redirect to dashboard if user is already logged in
+    // Authentication routes - redirect to dashboard if user is already logged in and verified
     if (pathname.startsWith('/login') || pathname.startsWith('/signup')) {
       if (user) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
+        if (isVerified) {
+          return NextResponse.redirect(new URL('/dashboard', request.url))
+        } else {
+          return NextResponse.redirect(new URL('/auth/verify-code', request.url))
+        }
       }
       return NextResponse.next()
     }
@@ -21,6 +26,21 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith('/dashboard')) {
       if (!user) {
         return NextResponse.redirect(new URL('/login', request.url))
+      }
+      // Redirect to verify-code if email is not verified
+      if (!isVerified) {
+        return NextResponse.redirect(new URL('/auth/verify-code', request.url))
+      }
+      return NextResponse.next()
+    }
+
+    // Verification route - only accessible if logged in and not verified
+    if (pathname.startsWith('/auth/verify-code')) {
+      if (!user) {
+        return NextResponse.redirect(new URL('/login', request.url))
+      }
+      if (isVerified) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
       }
       return NextResponse.next()
     }

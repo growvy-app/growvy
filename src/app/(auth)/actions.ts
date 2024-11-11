@@ -35,7 +35,7 @@ export async function login(formData: FormData) {
 
   const { email, password } = validatedFields.data
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { error, data } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
@@ -44,6 +44,40 @@ export async function login(formData: FormData) {
     return {
       error: error.message
     }
+  }
+
+  // Check if email is verified
+  const { data: { user } } = await supabase.auth.getUser()
+  const isVerified = user?.user_metadata?.email_verified || false
+
+  if (!isVerified) {
+    // Generate and send new verification code
+    const verificationCode = Math.floor(1000 + Math.random() * 9000).toString()
+
+    const cookieStore = await cookies()
+    cookieStore.set('verification_data', JSON.stringify({
+      email,
+      code: verificationCode,
+      expires: Date.now() + 10 * 60 * 1000
+    }), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 600
+    })
+
+    await resend.emails.send({
+      from: 'Fred at Growvy <fred@growvy.app>',
+      to: email,
+      subject: 'Your Verification Code',
+      html: `
+        <h2>Your Verification Code</h2>
+        <p>Your verification code is: <strong>${verificationCode}</strong></p>
+        <p>This code will expire in 10 minutes.</p>
+      `
+    })
+
+    redirect('/auth/verify-code')
   }
 
   revalidatePath('/', 'layout')
@@ -66,7 +100,7 @@ export async function signup(formData: FormData): Promise<ActionResponse> {
 
   const { email, password } = validatedFields.data
 
-  // First create the user with email verification as false
+  // Create user with email_verified explicitly set to false
   const { error: signUpError } = await supabase.auth.signUp({
     email,
     password,
@@ -74,7 +108,7 @@ export async function signup(formData: FormData): Promise<ActionResponse> {
       data: {
         email_verified: false
       },
-      emailRedirectTo: undefined
+      emailRedirectTo: undefined // Disable Supabase email
     }
   })
 
@@ -84,7 +118,7 @@ export async function signup(formData: FormData): Promise<ActionResponse> {
     }
   }
 
-  // Immediately sign in the user
+  // Sign in the user immediately
   const { error: signInError } = await supabase.auth.signInWithPassword({
     email,
     password
@@ -105,12 +139,12 @@ export async function signup(formData: FormData): Promise<ActionResponse> {
     cookieStore.set('verification_data', JSON.stringify({
       email,
       code: verificationCode,
-      expires: Date.now() + 10 * 60 * 1000 // 10 minutes
+      expires: Date.now() + 10 * 60 * 1000
     }), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 600 // 10 minutes
+      maxAge: 600
     })
 
     // Send verification email through Resend only
@@ -125,7 +159,6 @@ export async function signup(formData: FormData): Promise<ActionResponse> {
       `
     })
 
-    // Return success instead of redirecting
     return { success: true }
 
   } catch (error) {
