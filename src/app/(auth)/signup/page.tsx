@@ -6,6 +6,11 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+type ActionResponse = {
+    error?: string;
+    success?: boolean;
+}
+
 export default function SignUpPage() {
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
@@ -15,14 +20,13 @@ export default function SignUpPage() {
         setError(null)
         setLoading(true)
 
-        const result = await signup(formData)
+        const result = await signup(formData) as ActionResponse
 
         if (result?.error) {
             setError(result.error)
             setLoading(false)
         } else if (result?.success) {
-            // Redirect to verification page on success
-            router.push('/auth/verify-email')
+            router.push('/auth/verify-code')
         }
     }
 
