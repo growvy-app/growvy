@@ -252,3 +252,64 @@ export async function resendCode(email: string) {
     }
   }
 }
+
+export async function resetPassword(formData: FormData) {
+  const supabase = await createClient()
+
+  const email = formData.get('email') as string
+
+  if (!email) {
+    return {
+      error: 'Email is required'
+    }
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+  })
+
+  if (error) {
+    return {
+      error: error.message
+    }
+  }
+
+  return { success: true }
+}
+
+export async function updatePassword(formData: FormData, code: string) {
+  const supabase = await createClient()
+
+  const password = formData.get('password') as string
+  const confirmPassword = formData.get('confirmPassword') as string
+
+  if (password !== confirmPassword) {
+    return {
+      error: 'Passwords do not match'
+    }
+  }
+
+  try {
+    // First exchange the code for a session
+    const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (sessionError) {
+      throw sessionError
+    }
+
+    // Then update the password
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: password
+    })
+
+    if (updateError) {
+      throw updateError
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    return {
+      error: error.message || 'An error occurred while resetting your password'
+    }
+  }
+}

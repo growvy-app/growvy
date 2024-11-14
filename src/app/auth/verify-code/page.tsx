@@ -12,7 +12,6 @@ export default function VerifyCode() {
     const router = useRouter()
     const inputs = useRef<(HTMLInputElement | null)[]>([])
 
-    // Countdown timer for resend button
     useEffect(() => {
         if (countdown > 0) {
             const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
@@ -20,23 +19,19 @@ export default function VerifyCode() {
         }
     }, [countdown])
 
-    // Handle input changes and auto-focus
     const handleInput = async (index: number, value: string) => {
         if (value.length > 1) {
-            value = value[0] // Only take first character
+            value = value[0]
         }
 
-        // Update input value
         if (inputs.current[index]) {
             inputs.current[index]!.value = value
         }
 
-        // Move to next input if value is entered
         if (value && index < 3) {
             inputs.current[index + 1]?.focus()
         }
 
-        // If last digit entered, submit automatically
         if (index === 3 && value) {
             const code = inputs.current
                 .map(input => input?.value)
@@ -48,7 +43,6 @@ export default function VerifyCode() {
         }
     }
 
-    // Handle backspace
     const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Backspace' && !e.currentTarget.value && index > 0) {
             inputs.current[index - 1]?.focus()
@@ -70,22 +64,6 @@ export default function VerifyCode() {
             setError(result.error)
             setLoading(false)
         }
-        // If successful, the action will handle redirect
-    }
-
-    const handleResend = async () => {
-        setError(null)
-        setLoading(true)
-
-        const result = await resendCode()
-
-        if (result?.error) {
-            setError(result.error)
-        } else {
-            setCountdown(30) // Reset countdown
-        }
-
-        setLoading(false)
     }
 
     return (
