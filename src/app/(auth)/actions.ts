@@ -77,7 +77,7 @@ export async function login(formData: FormData) {
       `
     })
 
-    redirect('/auth/verify-code')
+    redirect('/verify-code')
   }
 
   revalidatePath('/', 'layout')
@@ -265,7 +265,7 @@ export async function resetPassword(formData: FormData) {
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password`,
   })
 
   if (error) {
@@ -312,4 +312,17 @@ export async function updatePassword(formData: FormData, code: string) {
       error: error.message || 'An error occurred while resetting your password'
     }
   }
+}
+
+export async function signOut() {
+  const supabase = await createClient()
+  const { error } = await supabase.auth.signOut()
+
+  if (error) {
+    return {
+      error: error.message
+    }
+  }
+
+  redirect('/login')
 }

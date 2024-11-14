@@ -26,7 +26,7 @@ export default function SignUpPage() {
             setError(result.error)
             setLoading(false)
         } else if (result?.success) {
-            router.push('/auth/verify-code')
+            router.push('/verify-code')
         }
     }
 

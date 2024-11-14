@@ -66,6 +66,37 @@ export default function VerifyCode() {
         }
     }
 
+    const handleResend = async () => {
+        setError(null)
+        setLoading(true)
+
+        try {
+            const cookieStore = document.cookie
+            const verificationData = cookieStore
+                .split('; ')
+                .find(row => row.startsWith('verification_data='))
+
+            if (!verificationData) {
+                setError('No email found. Please try signing up again.')
+                setLoading(false)
+                return
+            }
+
+            const data = JSON.parse(decodeURIComponent(verificationData.split('=')[1]))
+            const result = await resendCode(data.email)
+
+            if (result?.error) {
+                setError(result.error)
+            } else {
+                setCountdown(30) // Reset countdown
+            }
+        } catch (error) {
+            setError('Error resending code. Please try again.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg text-center">

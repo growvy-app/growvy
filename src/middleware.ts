@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
         if (isVerified) {
           return NextResponse.redirect(new URL('/dashboard', request.url))
         } else {
-          return NextResponse.redirect(new URL('/auth/verify-code', request.url))
+          return NextResponse.redirect(new URL('//verify-code', request.url))
         }
       }
       return NextResponse.next()
@@ -29,13 +29,13 @@ export async function middleware(request: NextRequest) {
       }
       // Redirect to verify-code if email is not verified
       if (!isVerified) {
-        return NextResponse.redirect(new URL('/auth/verify-code', request.url))
+        return NextResponse.redirect(new URL('//verify-code', request.url))
       }
       return NextResponse.next()
     }
 
     // Verification route - only accessible if logged in and not verified
-    if (pathname.startsWith('/auth/verify-code')) {
+    if (pathname.startsWith('//verify-code')) {
       if (!user) {
         return NextResponse.redirect(new URL('/login', request.url))
       }
@@ -46,7 +46,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Public routes
-    if (pathname.startsWith('/auth')) {
+    if (pathname.startsWith('/')) {
       return NextResponse.next()
     }
 

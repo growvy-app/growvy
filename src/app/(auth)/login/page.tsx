@@ -104,7 +104,7 @@ export default function LoginPage() {
                                 Create account
                             </Link>
                             <Link
-                                href="/auth/forgot-password"
+                                href="/forgot-password"
                                 className="text-sm text-indigo-600 hover:text-indigo-500"
                             >
                                 Forgot password?

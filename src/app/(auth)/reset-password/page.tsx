@@ -52,7 +52,7 @@ export default function ResetPasswordPage() {
                         </p>
                         <div className="mt-4">
                             <a
-                                href="/auth/forgot-password"
+                                href="/forgot-password"
                                 className="text-indigo-600 hover:text-indigo-500"
                             >
                                 Request new reset link
