@@ -4,12 +4,11 @@ import Link from 'next/link'
 import { inter } from '@/app/ui/fonts'
 import { login } from '@/app/(auth)/actions'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import PasswordInput from '@/app/components/PasswordInput'
 
 export default function LoginPage() {
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
-    const router = useRouter()
 
     async function handleSubmit(formData: FormData) {
         setError(null)
@@ -71,21 +70,12 @@ export default function LoginPage() {
                             />
                         </div>
 
-                        <div>
-                            <label
-                                htmlFor="password"
-                                className="block text-sm font-medium text-gray-700"
-                            >
-                                Password
-                            </label>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            />
-                        </div>
+                        <PasswordInput
+                            id="password"
+                            name="password"
+                            label="Password"
+                            required
+                        />
                     </div>
 
                     <div className="flex flex-col gap-3">

@@ -253,6 +253,48 @@ export async function resendCode(email: string) {
   }
 }
 
+export async function updatePassword(formData: FormData, code: string) {
+  const supabase = await createClient()
+
+  const password = formData.get('password') as string
+  const confirmPassword = formData.get('confirmPassword') as string
+
+  if (password !== confirmPassword) {
+    return {
+      error: 'Passwords do not match'
+    }
+  }
+
+  try {
+    // Exchange the recovery code for a session
+    const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (sessionError) {
+      return {
+        error: 'Invalid or expired reset link. Please request a new one.'
+      }
+    }
+
+    // Update the user's password
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: password
+    })
+
+    if (updateError) {
+      return {
+        error: updateError.message
+      }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Password reset error:', error)
+    return {
+      error: 'An error occurred while resetting your password. Please try again.'
+    }
+  }
+}
+
 export async function resetPassword(formData: FormData) {
   const supabase = await createClient()
 
@@ -275,43 +317,6 @@ export async function resetPassword(formData: FormData) {
   }
 
   return { success: true }
-}
-
-export async function updatePassword(formData: FormData, code: string) {
-  const supabase = await createClient()
-
-  const password = formData.get('password') as string
-  const confirmPassword = formData.get('confirmPassword') as string
-
-  if (password !== confirmPassword) {
-    return {
-      error: 'Passwords do not match'
-    }
-  }
-
-  try {
-    // First exchange the code for a session
-    const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
-
-    if (sessionError) {
-      throw sessionError
-    }
-
-    // Then update the password
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: password
-    })
-
-    if (updateError) {
-      throw updateError
-    }
-
-    return { success: true }
-  } catch (error: any) {
-    return {
-      error: error.message || 'An error occurred while resetting your password'
-    }
-  }
 }
 
 export async function signOut() {
