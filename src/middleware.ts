@@ -27,10 +27,6 @@ export async function middleware(request: NextRequest) {
       if (!user) {
         return NextResponse.redirect(new URL('/login', request.url))
       }
-      // Redirect to verify-code if email is not verified
-      if (!isVerified) {
-        return NextResponse.redirect(new URL('//verify-code', request.url))
-      }
       return NextResponse.next()
     }
 

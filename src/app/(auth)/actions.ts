@@ -331,3 +331,31 @@ export async function signOut() {
 
   redirect('/login')
 }
+
+export async function updateEmail(formData: FormData) {
+  const supabase = await createClient()
+
+  const newEmail = formData.get('email') as string
+
+  if (!newEmail) {
+    return {
+      error: 'Email is required'
+    }
+  }
+
+  // Update the email
+  const { error: updateError } = await supabase.auth.updateUser({
+    email: newEmail,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?type=email_change`
+    }
+  })
+
+  if (updateError) {
+    return {
+      error: updateError.message
+    }
+  }
+
+  return { success: true }
+}
