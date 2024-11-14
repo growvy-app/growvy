@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { updateEmail } from '@/app/(auth)/actions'
 import { createClient } from '@/utils/supabase/client'
 import ConfirmDialog from '@/app/components/ConfirmDialog'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 export default function SettingsPage() {
     const [loading, setLoading] = useState(false)
@@ -62,6 +64,10 @@ export default function SettingsPage() {
         <div className="min-h-screen bg-gray-50 p-8">
             <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-xl shadow-lg p-8">
+                    <Link className="text-sm text-gray-500 mb-4 inline-flex items-center gap-2" href="/dashboard">
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Dashboard
+                    </Link>
                     <h1 className="text-3xl font-bold text-gray-900 mb-8">
                         Settings
                     </h1>

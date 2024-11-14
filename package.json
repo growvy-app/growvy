@@ -12,6 +12,7 @@
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "autoprefixer": "latest",
+    "lucide-react": "^0.456.0",
     "next": "latest",
     "postcss": "latest",
     "react": "latest",
