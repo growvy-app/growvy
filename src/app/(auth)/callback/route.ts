@@ -13,8 +13,8 @@ export async function GET(request: Request) {
         // Exchange the code for a session
         await supabase.auth.exchangeCodeForSession(code)
 
-        // If it's an email change confirmation, redirect to settings
-        if (type === 'email_change') {
+        // If it's an email change confirmation, redirect to settings with success param
+        if (requestUrl.pathname.includes('/dashboard/settings')) {
             return NextResponse.redirect(`${requestUrl.origin}/dashboard/settings?success=email-change`)
         }
 

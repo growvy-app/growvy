@@ -336,14 +336,27 @@ export async function updateEmail(formData: FormData) {
     }
   }
 
+  // First get the current user
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return {
+      error: 'Not authenticated'
+    }
+  }
+
   // Update the email
   const { error: updateError } = await supabase.auth.updateUser({
     email: newEmail,
-    emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?type=email_change`
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/settings?success=email-change`,
+      data: {
+        skipOldEmailNotification: true // This tells Supabase to skip notifying the old email
+      }
+    }
   })
 
   if (updateError) {
-    // Handle specific Supabase error for existing email
     if (updateError.message.includes('email already in use')) {
       return {
         error: 'An account with this email already exists'
