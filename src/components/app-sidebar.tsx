@@ -29,18 +29,12 @@ const menuItems = [
     }
 ]
 
-function SidebarContent() {
+function SidebarContent({ onNavigate, isMobile }: { onNavigate?: () => void, isMobile?: boolean }) {
     const pathname = usePathname()
 
     return (
         <div className="flex flex-col h-full">
-            <div className="h-16 flex items-center px-6">
-                <Link href="/dashboard" className="font-semibold text-xl">
-                    Growvy
-                </Link>
-            </div>
-
-            <div className="flex-1 p-4">
+            <div className="flex-1 p-4 overflow-y-auto">
                 <nav className="space-y-1">
                     {menuItems.map((item) => {
                         const isActive = pathname === item.href
@@ -49,15 +43,17 @@ function SidebarContent() {
                             <Link
                                 key={item.title}
                                 href={item.href}
+                                onClick={onNavigate}
                                 prefetch={true}
                                 className={cn(
-                                    "flex items-center gap-3 px-3 py-2 text-sm rounded-md text-gray-700",
+                                    "flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-700",
+                                    isMobile ? "text-base" : "text-sm",
                                     isActive
                                         ? "bg-gray-100 text-black font-bold"
                                         : "hover:bg-accent"
                                 )}
                             >
-                                <Icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
+                                <Icon className={cn("h-5 w-5", !isMobile && "h-4 w-4")} strokeWidth={isActive ? 2.5 : 2} />
                                 {item.title}
                             </Link>
                         )
@@ -68,18 +64,20 @@ function SidebarContent() {
             <div className="p-4">
                 <Link
                     href="/dashboard/settings"
+                    onClick={onNavigate}
                     prefetch={true}
                     className={cn(
-                        "flex items-center gap-3 px-3 py-2 text-sm rounded-md text-gray-700",
+                        "flex items-center gap-3 px-3 py-2.5 rounded-md text-gray-700",
+                        isMobile ? "text-base" : "text-sm",
                         pathname === "/dashboard/settings"
                             ? "bg-gray-100 text-black font-bold"
                             : "hover:bg-accent"
                     )}
                 >
                     {pathname === "/dashboard/settings" ? (
-                        <SettingsFilled className="h-4 w-4" strokeWidth={2.5} />
+                        <SettingsFilled className={cn("h-5 w-5", !isMobile && "h-4 w-4")} strokeWidth={2.5} />
                     ) : (
-                        <Settings className="h-4 w-4" strokeWidth={2} />
+                        <Settings className={cn("h-5 w-5", !isMobile && "h-4 w-4")} strokeWidth={2} />
                     )}
                     Settings
                 </Link>
@@ -91,26 +89,40 @@ function SidebarContent() {
 export function AppSidebar() {
     const [open, setOpen] = useState(false)
 
+    const handleNavigate = () => {
+        setOpen(false)
+    }
+
     return (
         <>
-            {/* Mobile Menu Button */}
-            <div className="md:hidden fixed top-0 left-0 p-4 z-50">
+            {/* Mobile Header */}
+            <div className="md:hidden fixed top-0 left-0 right-0 h-14 border-b bg-background px-4 flex items-center justify-between z-40">
+                <Link href="/dashboard" className="font-semibold text-lg">
+                    Growvy
+                </Link>
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetTrigger asChild>
                         <Button variant="ghost" size="icon">
                             <Menu className="h-6 w-6" />
                         </Button>
                     </SheetTrigger>
-                    <SheetContent side="left" className="p-0 w-72">
+                    <SheetContent side="right" className="p-0 pt-12 w-72">
                         <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                        <SidebarContent />
+                        <SidebarContent onNavigate={handleNavigate} isMobile={true} />
                     </SheetContent>
                 </Sheet>
             </div>
 
             {/* Desktop Sidebar */}
-            <aside className="hidden md:block w-64 border-r bg-background shrink-0">
-                <SidebarContent />
+            <aside className="hidden md:block w-64 border-r bg-background shrink-0 h-screen sticky top-0">
+                <div className="h-16 flex items-center px-6">
+                    <Link href="/dashboard" className="font-semibold text-lg">
+                        Growvy
+                    </Link>
+                </div>
+                <div className="h-[calc(100vh-4rem)]">
+                    <SidebarContent isMobile={false} />
+                </div>
             </aside>
         </>
     )
