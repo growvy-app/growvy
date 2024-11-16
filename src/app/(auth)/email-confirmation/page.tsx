@@ -15,50 +15,57 @@ export default function EmailConfirmationPage() {
     const [emailVerified, setEmailVerified] = useState(false)
 
     useEffect(() => {
-        // Poll for email verification status
-        const checkEmailVerification = async () => {
-            const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
+        let interval: NodeJS.Timeout | null = null
 
-            if (user?.email_confirmed_at) {
-                setEmailVerified(true)
-                // If opener window exists, trigger a refresh
-                if (window.opener) {
-                    window.opener.location.reload()
+        // Only set up polling if there's no error
+        if (!error) {
+            const checkEmailVerification = async () => {
+                const supabase = createClient()
+                const { data: { user } } = await supabase.auth.getUser()
+
+                if (user?.email_confirmed_at) {
+                    setEmailVerified(true)
+                    if (window.opener) {
+                        window.opener.location.reload()
+                    }
+                    if (interval) {
+                        clearInterval(interval)
+                    }
                 }
             }
+
+            interval = setInterval(checkEmailVerification, 2000)
         }
 
-        const interval = setInterval(checkEmailVerification, 2000) // Check every 2 seconds
-
-        return () => clearInterval(interval)
-    }, [])
+        // Cleanup function
+        return () => {
+            if (interval) {
+                clearInterval(interval)
+            }
+        }
+    }, [error]) // Only depend on error state
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
             <Card className="w-full max-w-md">
-                <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                        {emailVerified ? (
-                            <>
-                                <CheckCircle2 className="h-6 w-6 text-green-500" />
-                                Email Changed Successfully
-                            </>
-                        ) : error ? (
-                            <>
-                                <XCircle className="h-6 w-6 text-red-500" />
-                                Email Change Failed
-                            </>
-                        ) : (
-                            <>
-                                <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                                Confirming Email Change
-                            </>
-                        )}
+                <CardHeader className="space-y-6 flex flex-col items-center">
+                    {emailVerified ? (
+                        <CheckCircle2 className="h-12 w-12 text-green-500" />
+                    ) : error ? (
+                        <XCircle className="h-12 w-12 text-red-500" />
+                    ) : (
+                        <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                    )}
+                    <CardTitle className="text-2xl font-bold text-center">
+                        {emailVerified
+                            ? "Email Changed Successfully"
+                            : error
+                                ? "Email Change Failed"
+                                : "Confirming Email Change"}
                     </CardTitle>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                     <CardDescription className="text-center text-base">
                         {emailVerified
                             ? "Your email has been successfully updated. You can close this window."
