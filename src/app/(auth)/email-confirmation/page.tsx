@@ -20,7 +20,7 @@ export default function EmailConfirmationPage() {
             const supabase = createClient()
             const { data: { user } } = await supabase.auth.getUser()
 
-            if (user?.new_email_confirmed_at || user?.email_confirmed_at) {
+            if (user?.email_confirmed_at) {
                 setEmailVerified(true)
                 // If opener window exists, trigger a refresh
                 if (window.opener) {

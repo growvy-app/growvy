@@ -5,35 +5,28 @@ export async function GET(request: Request) {
     const requestUrl = new URL(request.url)
     const token_hash = requestUrl.searchParams.get('token_hash')
     const type = requestUrl.searchParams.get('type')
-    const next = requestUrl.searchParams.get('next') ?? '/dashboard'
 
     if (token_hash && type) {
         const supabase = await createClient()
 
-        // Exchange the token hash for a session
-        const { error } = await supabase.auth.verifyOtp({
-            type,
-            token_hash,
-        })
-
-        if (error) {
-            // If there was an error during email change
-            return NextResponse.redirect(
-                `${requestUrl.origin}/dashboard/settings?error=email-change&message=${error.message}`
-            )
-        }
-
-        // If it's an email change confirmation
         if (type === 'email_change') {
+            const { error } = await supabase.auth.verifyOtp({
+                token_hash,
+                type: 'email_change',
+            })
+
+            if (error) {
+                return NextResponse.redirect(
+                    `${requestUrl.origin}/email-confirmation?error=email-change&message=${error.message}`
+                )
+            }
+
             return NextResponse.redirect(
-                `${requestUrl.origin}/dashboard/settings?success=email-change`
+                `${requestUrl.origin}/email-confirmation?success=email-change`
             )
         }
-
-        // For other auth flows (password reset, etc), redirect to the next URL
-        return NextResponse.redirect(`${requestUrl.origin}${next}`)
     }
 
-    // Return the user to an error page if no code is present
+    // Return the user to an error page if no token_hash is present
     return NextResponse.redirect(`${requestUrl.origin}/error`)
 } 
