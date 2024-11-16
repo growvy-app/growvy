@@ -20,6 +20,7 @@ export default function SettingsPage() {
     const [newEmail, setNewEmail] = useState('')
     const [showConfirmDialog, setShowConfirmDialog] = useState(false)
     const searchParams = useSearchParams()
+    const [isPolling, setIsPolling] = useState(false)
 
     useEffect(() => {
         async function getUser() {
@@ -33,8 +34,44 @@ export default function SettingsPage() {
 
         if (searchParams.get('success') === 'email-change') {
             setSuccess(true)
+            setError(null)
+            setIsPolling(true)
+        } else if (searchParams.get('error') === 'email-change') {
+            setError(searchParams.get('message') || 'Error changing email')
+            setSuccess(false)
         }
     }, [searchParams])
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout
+
+        if (isPolling) {
+            interval = setInterval(async () => {
+                const supabase = createClient()
+                const { data: { user } } = await supabase.auth.getUser()
+
+                if (user?.email && user.email !== currentEmail) {
+                    setCurrentEmail(user.email)
+                    setIsPolling(false)
+                    setSuccess(false)
+                    setError(null)
+                    clearInterval(interval)
+                }
+            }, 2000)
+        }
+
+        return () => {
+            if (interval) {
+                clearInterval(interval)
+            }
+        }
+    }, [isPolling, currentEmail])
+
+    useEffect(() => {
+        if (success && !isPolling) {
+            setIsPolling(true)
+        }
+    }, [success])
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
