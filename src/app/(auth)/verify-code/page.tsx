@@ -1,9 +1,13 @@
 'use client'
 
-import { inter } from '@/app/ui/fonts'
-import { verifyCode, resendCode } from '@/app/(auth)/actions'
 import { useState, useEffect, useRef } from 'react'
+import { verifyCode, resendCode } from '@/app/(auth)/actions'
 import { useRouter } from 'next/navigation'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
+import { Input } from "@/components/ui/input"
 
 export default function VerifyCode() {
     const [countdown, setCountdown] = useState(30)
@@ -20,25 +24,48 @@ export default function VerifyCode() {
     }, [countdown])
 
     const handleInput = async (index: number, value: string) => {
-        if (value.length > 1) {
-            value = value[0]
+        const numericValue = value.replace(/[^0-9]/g, '')
+
+        if (numericValue.length > 1) {
+            value = numericValue[0]
         }
 
         if (inputs.current[index]) {
-            inputs.current[index]!.value = value
+            inputs.current[index]!.value = numericValue
         }
 
-        if (value && index < 3) {
+        if (numericValue && index < 3) {
             inputs.current[index + 1]?.focus()
         }
 
-        if (index === 3 && value) {
+        if (index === 3 && numericValue) {
             const code = inputs.current
                 .map(input => input?.value)
                 .join('')
 
             if (code.length === 4) {
                 await handleVerify(code)
+            }
+        }
+    }
+
+    const handlePaste = (e: React.ClipboardEvent) => {
+        e.preventDefault()
+        const pastedData = e.clipboardData.getData('text')
+        const numbers = pastedData.replace(/[^0-9]/g, '').slice(0, 4)
+
+        if (numbers) {
+            numbers.split('').forEach((num, index) => {
+                if (inputs.current[index]) {
+                    inputs.current[index]!.value = num
+                    if (index < 3) {
+                        inputs.current[index + 1]?.focus()
+                    }
+                }
+            })
+
+            if (numbers.length === 4) {
+                handleVerify(numbers)
             }
         }
     }
@@ -88,7 +115,7 @@ export default function VerifyCode() {
             if (result?.error) {
                 setError(result.error)
             } else {
-                setCountdown(30) // Reset countdown
+                setCountdown(30)
             }
         } catch (error) {
             setError('Error resending code. Please try again.')
@@ -102,63 +129,55 @@ export default function VerifyCode() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg text-center">
-                <h2 className={`${inter.className} text-3xl font-bold text-gray-900`}>
-                    Verify your email
-                </h2>
-                <p className="text-gray-600">
-                    We've sent a 4-digit code to your email
-                </p>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+            <Card className="w-full max-w-md">
+                <CardHeader className="space-y-1">
+                    <CardTitle className="text-2xl font-bold">Verify your email</CardTitle>
+                    <CardDescription>
+                        We've sent a 4-digit code to your email
+                    </CardDescription>
+                </CardHeader>
 
-                {error && (
-                    <div className="bg-red-50 border-l-4 border-red-400 p-4">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                            <div className="ml-3">
-                                <p className="text-sm text-red-700">{error}</p>
-                            </div>
-                        </div>
+                <CardContent className="space-y-4">
+                    {error && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
+
+                    <div className="flex justify-center gap-2">
+                        {[0, 1, 2, 3].map((i) => (
+                            <Input
+                                key={i}
+                                ref={setInputRef(i)}
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={1}
+                                className="w-14 h-14 text-center text-2xl font-semibold"
+                                onChange={(e) => handleInput(i, e.target.value)}
+                                onKeyDown={(e) => handleKeyDown(i, e)}
+                                onPaste={handlePaste}
+                                disabled={loading}
+                            />
+                        ))}
                     </div>
-                )}
 
-                <div className="flex justify-center gap-4 my-8">
-                    {[0, 1, 2, 3].map((i) => (
-                        <input
-                            key={i}
-                            ref={setInputRef(i)}
-                            type="text"
-                            maxLength={1}
-                            className="w-14 h-14 text-center text-2xl font-semibold border-2 rounded-lg focus:border-indigo-500 focus:ring-indigo-500"
-                            onChange={(e) => handleInput(i, e.target.value)}
-                            onKeyDown={(e) => handleKeyDown(i, e)}
-                            disabled={loading}
-                        />
-                    ))}
-                </div>
-
-                <div className="mt-6">
-                    <button
+                    <Button
+                        className="w-full"
+                        variant="outline"
                         onClick={handleResend}
                         disabled={countdown > 0 || loading}
-                        className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
-                            ${countdown > 0 || loading
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                            } disabled:opacity-50 transition-colors duration-200`}
                     >
                         {loading ? 'Sending...' : countdown > 0 ? `Resend code (${countdown}s)` : 'Resend code'}
-                    </button>
-                </div>
+                    </Button>
 
-                <p className="mt-4 text-sm text-gray-500">
-                    Didn't receive the code? Check your spam folder.
-                </p>
-            </div>
+                    <p className="text-sm text-muted-foreground text-center">
+                        Didn't receive the code? Check your spam folder.
+                    </p>
+                </CardContent>
+            </Card>
         </div>
     )
 } 

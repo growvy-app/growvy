@@ -87,7 +87,7 @@ export default function SettingsPage() {
             </div>
 
             {error && (
-                <Alert variant="destructive" className="mb-6">
+                <Alert variant="destructive" className="">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
@@ -166,15 +166,15 @@ export default function SettingsPage() {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Confirm Email Change</DialogTitle>
-                        <DialogDescription className="pt-4">
-                            <div className="flex items-center justify-between p-4 bg-muted rounded-lg mb-4">
-                                <span className="text-sm">{currentEmail}</span>
-                                <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm font-medium">{newEmail}</span>
-                            </div>
-                            Are you sure you want to change your email address? You'll need to verify your new email before the change takes effect.
-                        </DialogDescription>
                     </DialogHeader>
+                    <div className="flex items-center justify-between p-4 bg-muted rounded-lg mb-4">
+                        <span className="text-sm">{currentEmail}</span>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">{newEmail}</span>
+                    </div>
+                    <DialogDescription>
+                        Are you sure you want to change your email address? You'll need to verify your new email before the change takes effect.
+                    </DialogDescription>
                     <DialogFooter>
                         <Button
                             variant="outline"
