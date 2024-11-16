@@ -321,13 +321,53 @@ export async function resetPassword(formData: FormData) {
 
 export async function signOut() {
   const supabase = await createClient()
-  const { error } = await supabase.auth.signOut()
+  await supabase.auth.signOut()
+  redirect('/login')
+}
 
-  if (error) {
+export async function updateEmail(formData: FormData) {
+  const supabase = await createClient()
+
+  const newEmail = formData.get('email') as string
+
+  if (!newEmail) {
     return {
-      error: error.message
+      error: 'Email is required'
     }
   }
 
-  redirect('/login')
+  // First check if email already exists
+  const { data: existingUser } = await supabase.auth.admin.listUsers({
+    filters: {
+      email: newEmail
+    }
+  })
+
+  if (existingUser?.users.length > 0) {
+    return {
+      error: 'An account with this email already exists'
+    }
+  }
+
+  // Update the email
+  const { error: updateError } = await supabase.auth.updateUser({
+    email: newEmail,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?type=email_change`
+    }
+  })
+
+  if (updateError) {
+    // Handle specific Supabase error for existing email
+    if (updateError.message.includes('email already in use')) {
+      return {
+        error: 'An account with this email already exists'
+      }
+    }
+    return {
+      error: updateError.message
+    }
+  }
+
+  return { success: true }
 }

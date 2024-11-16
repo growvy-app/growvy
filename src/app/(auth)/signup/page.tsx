@@ -1,11 +1,15 @@
 'use client'
 
-import Link from 'next/link'
-import { inter } from '@/app/ui/fonts'
-import { signup } from '@/app/(auth)/actions'
 import { useState } from 'react'
+import Link from 'next/link'
+import { signup } from '@/app/(auth)/actions'
 import { useRouter } from 'next/navigation'
-import PasswordInput from '@/app/components/PasswordInput'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { PasswordInput } from "@/components/ui/password-input"
 
 export default function SignUpPage() {
     const [error, setError] = useState<string | null>(null)
@@ -22,72 +26,69 @@ export default function SignUpPage() {
             setError(result.error)
             setLoading(false)
         } else if (result?.success) {
-            router.push('/auth/verify-code')
+            router.push('/verify-code')
         }
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
-                <div className="text-center">
-                    <h2 className={`${inter.className} text-3xl font-bold text-gray-900`}>
-                        Create an account
-                    </h2>
-                    <p className="mt-2 text-sm text-gray-600">
-                        Start your journey with us
-                    </p>
-                </div>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+            <Card className="w-full max-w-md">
+                <CardHeader className="space-y-1">
+                    <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+                    <CardDescription>
+                        Enter your email below to create your account
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {error && (
+                        <Alert variant="destructive" className="mb-6">
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
 
-                {error && (
-                    <div className="bg-red-50 border-l-4 border-red-400 p-4">
-                        <p className="text-sm text-red-700">{error}</p>
-                    </div>
-                )}
-
-                <form className="mt-8 space-y-6" action={handleSubmit}>
-                    <div className="space-y-4">
-                        <div>
-                            <label
-                                htmlFor="email"
-                                className="block text-sm font-medium text-gray-700"
-                            >
-                                Email
-                            </label>
-                            <input
+                    <form action={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
                                 id="email"
                                 name="email"
                                 type="email"
+                                placeholder="m@example.com"
                                 required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                             />
                         </div>
 
-                        <PasswordInput
-                            id="password"
-                            name="password"
-                            label="Password"
-                            required
-                            minLength={6}
-                        />
-                    </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <PasswordInput
+                                id="password"
+                                name="password"
+                                required
+                                minLength={6}
+                            />
+                        </div>
 
-                    <div className="flex flex-col gap-3">
-                        <button
+                        <Button
                             type="submit"
+                            className="w-full"
                             disabled={loading}
-                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                         >
-                            {loading ? 'Creating account...' : 'Create account'}
-                        </button>
-                        <p className="text-center text-sm text-gray-600">
-                            Already have an account?{' '}
-                            <Link href="/login" className="text-indigo-600 hover:text-indigo-500">
-                                Sign in
-                            </Link>
-                        </p>
+                            {loading ? "Creating account..." : "Create account"}
+                        </Button>
+                    </form>
+                </CardContent>
+                <CardFooter>
+                    <div className="text-sm text-muted-foreground">
+                        Already have an account?{' '}
+                        <Link
+                            href="/login"
+                            className="text-primary hover:underline"
+                        >
+                            Sign in
+                        </Link>
                     </div>
-                </form>
-            </div>
+                </CardFooter>
+            </Card>
         </div>
     )
 } 
