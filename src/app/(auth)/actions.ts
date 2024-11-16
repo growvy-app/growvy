@@ -336,25 +336,10 @@ export async function updateEmail(formData: FormData) {
     }
   }
 
-  // First check if email already exists
-  const { data: existingUser } = await supabase.auth.admin.listUsers({
-    filters: {
-      email: newEmail
-    }
-  })
-
-  if (existingUser?.users.length > 0) {
-    return {
-      error: 'An account with this email already exists'
-    }
-  }
-
   // Update the email
   const { error: updateError } = await supabase.auth.updateUser({
     email: newEmail,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?type=email_change`
-    }
+    emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?type=email_change`
   })
 
   if (updateError) {
