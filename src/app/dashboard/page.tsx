@@ -1,7 +1,8 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import SignOutButton from '@/app/components/SignOutButton'
+import { Button } from "@/components/ui/button"
 import Link from 'next/link'
+import SignOutButton from '@/components/ui/SignOutButton'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -12,27 +13,20 @@ export default async function DashboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-xl shadow-lg p-8">
-                    <div className="flex justify-between items-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">
-                            Dashboard
-                        </h1>
-                        <div className="flex items-center gap-4">
-                            <button
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            >
-                                <Link href="/dashboard/settings">Settings</Link>
-                            </button>
-                            <SignOutButton />
-                        </div>
-                    </div>
-                    <p className="text-gray-600">
-                        Welcome, {user.email}
-                    </p>
-                </div>
+        <div className="flex-1 space-y-4">
+            <div className="flex items-center justify-between space-y-2">
+                <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+            </div>
+
+            <div>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                    Account
+                </h3>
+                <div className="text-2xl font-bold">{user.email}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                    {user.user_metadata?.email_verified ? 'Email verified' : 'Email not verified'}
+                </p>
             </div>
         </div>
     )
-}
+} 

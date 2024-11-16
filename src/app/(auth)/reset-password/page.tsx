@@ -1,33 +1,45 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { inter } from '@/app/ui/fonts'
+import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { updatePassword } from '@/app/(auth)/actions'
-import PasswordInput from '@/app/components/PasswordInput'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle, CheckCircle2 } from "lucide-react"
+import { PasswordInput } from "@/components/ui/password-input"
+import Link from 'next/link'
 
 export default function ResetPasswordPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
+    const [password, setPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
     const searchParams = useSearchParams()
     const code = searchParams.get('code')
 
-    useEffect(() => {
-        if (!code) {
-            setError('Invalid reset link. Please request a new password reset.')
-        }
-    }, [code])
-
-    async function handleSubmit(formData: FormData) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault()
         if (!code) {
             setError('Invalid reset link')
+            return
+        }
+
+        if (password !== confirmPassword) {
+            setError('Passwords do not match')
             return
         }
 
         setError(null)
         setLoading(true)
         setSuccess(false)
+
+        const formData = new FormData()
+        formData.append('password', password)
+        formData.append('confirmPassword', confirmPassword)
 
         const result = await updatePassword(formData, code)
 
@@ -37,90 +49,97 @@ export default function ResetPasswordPage() {
         } else {
             setSuccess(true)
             setLoading(false)
+            setPassword('')
+            setConfirmPassword('')
         }
     }
 
     if (!code) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
-                    <div className="text-center">
-                        <h2 className={`${inter.className} text-3xl font-bold text-gray-900`}>
-                            Invalid Reset Link
-                        </h2>
-                        <p className="mt-2 text-sm text-gray-600">
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <Card className="w-full max-w-md">
+                    <CardHeader className="space-y-1">
+                        <CardTitle className="text-2xl font-bold text-destructive">Invalid Reset Link</CardTitle>
+                        <CardDescription>
                             This password reset link is invalid or has expired. Please request a new password reset.
-                        </p>
-                        <div className="mt-4">
-                            <a
-                                href="/auth/forgot-password"
-                                className="text-indigo-600 hover:text-indigo-500"
-                            >
-                                Request new reset link
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                        </CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                        <Link
+                            href="/forgot-password"
+                            className="text-primary hover:underline"
+                        >
+                            Request new reset link
+                        </Link>
+                    </CardFooter>
+                </Card>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
-                <div className="text-center">
-                    <h2 className={`${inter.className} text-3xl font-bold text-gray-900`}>
-                        Reset your password
-                    </h2>
-                    <p className="mt-2 text-sm text-gray-600">
+        <div className="min-h-screen flex items-center justify-center bg-background">
+            <Card className="w-full max-w-md">
+                <CardHeader className="space-y-1">
+                    <CardTitle className="text-2xl font-bold">Reset password</CardTitle>
+                    <CardDescription>
                         Enter your new password below
-                    </p>
-                </div>
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {error && (
+                        <Alert variant="destructive" className="mb-6">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
 
-                {error && (
-                    <div className="bg-red-50 border-l-4 border-red-400 p-4">
-                        <p className="text-sm text-red-700">{error}</p>
-                    </div>
-                )}
+                    {success ? (
+                        <Alert className="mb-6 border-green-500 text-green-700">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <AlertDescription>
+                                Password successfully reset. You can now{' '}
+                                <Link href="/login" className="font-medium underline">
+                                    log in
+                                </Link>
+                                {' '}with your new password.
+                            </AlertDescription>
+                        </Alert>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="password">New password</Label>
+                                <PasswordInput
+                                    id="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    minLength={6}
+                                />
+                            </div>
 
-                {success ? (
-                    <div className="bg-green-50 border-l-4 border-green-400 p-4">
-                        <p className="text-sm text-green-700">
-                            Password successfully reset. You can now <a href="/login" className="font-medium underline">log in</a> with your new password.
-                        </p>
-                    </div>
-                ) : (
-                    <form className="mt-8 space-y-6" action={handleSubmit}>
-                        <div className="space-y-4">
-                            <PasswordInput
-                                id="password"
-                                name="password"
-                                label="New password"
-                                required
-                                minLength={6}
-                            />
+                            <div className="space-y-2">
+                                <Label htmlFor="confirmPassword">Confirm new password</Label>
+                                <PasswordInput
+                                    id="confirmPassword"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    required
+                                    minLength={6}
+                                />
+                            </div>
 
-                            <PasswordInput
-                                id="confirmPassword"
-                                name="confirmPassword"
-                                label="Confirm new password"
-                                required
-                                minLength={6}
-                            />
-                        </div>
-
-                        <div>
-                            <button
+                            <Button
                                 type="submit"
+                                className="w-full"
                                 disabled={loading}
-                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                             >
-                                {loading ? 'Updating...' : 'Update password'}
-                            </button>
-                        </div>
-                    </form>
-                )}
-            </div>
+                                {loading ? "Updating..." : "Update password"}
+                            </Button>
+                        </form>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     )
 } 

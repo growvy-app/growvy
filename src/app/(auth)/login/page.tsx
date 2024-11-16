@@ -1,14 +1,18 @@
 'use client'
 
-import Link from 'next/link'
-import { inter } from '@/app/ui/fonts'
-import { login } from '@/app/(auth)/actions'
 import { useState } from 'react'
-import PasswordInput from '@/app/components/PasswordInput'
+import Link from 'next/link'
+import { login } from '@/app/(auth)/actions'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { PasswordInput } from "@/components/ui/password-input"
 
 export default function LoginPage() {
-    const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
     async function handleSubmit(formData: FormData) {
         setError(null)
@@ -20,89 +24,74 @@ export default function LoginPage() {
             setError(result.error)
             setLoading(false)
         }
-        // If no error, the login action will handle the redirect
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
-                <div className="text-center">
-                    <h2 className={`${inter.className} mt-6 text-3xl font-bold text-gray-900`}>
-                        Welcome back
-                    </h2>
-                    <p className="mt-2 text-sm text-gray-600">
-                        Please sign in to your account
-                    </p>
-                </div>
-
-                <form className="mt-8 space-y-6" action={handleSubmit}>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+            <Card className="w-full max-w-md">
+                <CardHeader className="space-y-1">
+                    <CardTitle className="text-2xl font-bold">Sign in</CardTitle>
+                    <CardDescription>
+                        Enter your email and password to sign in to your account
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
                     {error && (
-                        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div className="ml-3">
-                                    <p className="text-sm text-red-700">
-                                        {error}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        <Alert variant="destructive" className="mb-6">
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
                     )}
 
-                    <div className="space-y-4">
-                        <div>
-                            <label
-                                htmlFor="email"
-                                className="block text-sm font-medium text-gray-700"
-                            >
-                                Email
-                            </label>
-                            <input
+                    <form action={handleSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
                                 id="email"
                                 name="email"
                                 type="email"
+                                placeholder="m@example.com"
                                 required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                             />
                         </div>
 
-                        <PasswordInput
-                            id="password"
-                            name="password"
-                            label="Password"
-                            required
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-3">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {loading ? 'Signing in...' : 'Sign in'}
-                        </button>
-                        <div className="flex items-center justify-between">
-                            <Link
-                                href="/signup"
-                                className="text-sm text-indigo-600 hover:text-indigo-500"
-                            >
-                                Create account
-                            </Link>
-                            <Link
-                                href="/forgot-password"
-                                className="text-sm text-indigo-600 hover:text-indigo-500"
-                            >
-                                Forgot password?
-                            </Link>
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <PasswordInput
+                                id="password"
+                                name="password"
+                                required
+                            />
                         </div>
+
+                        <Button
+                            type="submit"
+                            className="w-full"
+                            disabled={loading}
+                        >
+                            {loading ? "Signing in..." : "Sign in"}
+                        </Button>
+                    </form>
+                </CardContent>
+                <CardFooter className="flex flex-col space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                        <Link
+                            href="/forgot-password"
+                            className="text-primary hover:underline"
+                        >
+                            Forgot your password?
+                        </Link>
                     </div>
-                </form>
-            </div>
+                    <div className="text-sm text-muted-foreground">
+                        Don't have an account?{' '}
+                        <Link
+                            href="/signup"
+                            className="text-primary hover:underline"
+                        >
+                            Sign up
+                        </Link>
+                    </div>
+                </CardFooter>
+            </Card>
         </div>
     )
 }

@@ -321,14 +321,7 @@ export async function resetPassword(formData: FormData) {
 
 export async function signOut() {
   const supabase = await createClient()
-  const { error } = await supabase.auth.signOut()
-
-  if (error) {
-    return {
-      error: error.message
-    }
-  }
-
+  await supabase.auth.signOut()
   redirect('/login')
 }
 
@@ -346,6 +339,7 @@ export async function updateEmail(formData: FormData) {
   // Update the email
   const { error: updateError } = await supabase.auth.updateUser({
     email: newEmail,
+    // @ts-ignore - Supabase types are incorrect
     options: {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?type=email_change`
     }

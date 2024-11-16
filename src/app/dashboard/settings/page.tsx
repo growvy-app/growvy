@@ -1,11 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { updateEmail } from '@/app/(auth)/actions'
+import { updateEmail, signOut } from '@/app/(auth)/actions'
 import { createClient } from '@/utils/supabase/client'
-import ConfirmDialog from '@/app/components/ConfirmDialog'
-import { ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle, CheckCircle2, Mail, User, ArrowRight, LogOut } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useSearchParams } from 'next/navigation'
 
 export default function SettingsPage() {
     const [loading, setLoading] = useState(false)
@@ -13,8 +17,9 @@ export default function SettingsPage() {
     const [success, setSuccess] = useState(false)
     const [showForm, setShowForm] = useState(false)
     const [currentEmail, setCurrentEmail] = useState<string | null>(null)
-    const [newEmail, setNewEmail] = useState<string>('')
+    const [newEmail, setNewEmail] = useState('')
     const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+    const searchParams = useSearchParams()
 
     useEffect(() => {
         async function getUser() {
@@ -25,12 +30,15 @@ export default function SettingsPage() {
             }
         }
         getUser()
-    }, [])
+
+        if (searchParams.get('success') === 'email-change') {
+            setSuccess(true)
+        }
+    }, [searchParams])
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
 
-        // Check if new email is the same as current email
         if (newEmail === currentEmail) {
             setError('New email cannot be the same as your current email')
             return
@@ -61,93 +69,128 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-xl shadow-lg p-8">
-                    <Link className="text-sm text-gray-500 mb-4 inline-flex items-center gap-2" href="/dashboard">
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Dashboard
-                    </Link>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-8">
-                        Settings
-                    </h1>
+        <div className="flex-1 space-y-4">
+            <div className="mb-8 flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+                    <p className="text-muted-foreground">Manage your account settings</p>
+                </div>
+                <form action={signOut}>
+                    <Button
+                        variant="ghost"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                        Sign out
+                        <LogOut className="mr-2 h-4 w-4" />
+                    </Button>
+                </form>
+            </div>
 
-                    {error && (
-                        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-                            <p className="text-sm text-red-700">{error}</p>
-                        </div>
-                    )}
+            {error && (
+                <Alert variant="destructive" className="mb-6">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
 
-                    {success && (
-                        <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
-                            <p className="text-sm text-green-700">
-                                Email update initiated. Please check your new email for a confirmation link.
-                            </p>
-                        </div>
-                    )}
+            {success && (
+                <Alert className="mb-6 border-green-500 text-green-700">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <AlertDescription>
+                        {searchParams.get('success') === 'email-change'
+                            ? 'Email changed successfully!'
+                            : 'Email update initiated. Please check your new email for a confirmation link.'}
+                    </AlertDescription>
+                </Alert>
+            )}
 
-                    <div className="space-y-6 max-w-md">
-                        <div className="flex items-center justify-between">
+            <div className="py-4">
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="p-2 bg-primary/10 rounded-full">
+                        <User className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-semibold">Account Information</h2>
+                        <p className="text-sm text-muted-foreground">Manage your personal information</p>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-4">
+                            <Mail className="h-5 w-5 text-muted-foreground" />
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Email Address
-                                </label>
-                                <p className="mt-1 text-sm text-gray-900">{currentEmail}</p>
+                                <p className="text-sm font-medium">Email Address</p>
+                                <p className="text-sm text-muted-foreground">{currentEmail}</p>
                             </div>
-                            <button
-                                onClick={() => setShowForm(!showForm)}
-                                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            >
-                                {showForm ? 'Cancel' : 'Change Email'}
-                            </button>
                         </div>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowForm(!showForm)}
+                        >
+                            {showForm ? 'Cancel' : 'Change'}
+                        </Button>
+                    </div>
 
-                        {showForm && (
-                            <form onSubmit={handleSubmit} className="space-y-6 mt-4 border-t pt-4">
-                                <div>
-                                    <label
-                                        htmlFor="email"
-                                        className="block text-sm font-medium text-gray-700"
-                                    >
-                                        New Email Address
-                                    </label>
-                                    <input
+                    {showForm && (
+                        <div className="p-4 bg-muted/30 rounded-lg space-y-4">
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">New Email Address</Label>
+                                    <Input
                                         id="email"
-                                        name="email"
                                         type="email"
-                                        required
                                         value={newEmail}
                                         onChange={(e) => setNewEmail(e.target.value)}
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="Enter new email address"
+                                        required
+                                        className="border-0 bg-background"
                                     />
                                 </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                                >
-                                    {loading ? 'Updating...' : 'Update Email'}
-                                </button>
+                                <div className="flex justify-end">
+                                    <Button
+                                        type="submit"
+                                        disabled={loading}
+                                    >
+                                        {loading ? "Updating..." : "Update Email"}
+                                    </Button>
+                                </div>
                             </form>
-                        )}
-                    </div>
-
-                    <ConfirmDialog
-                        isOpen={showConfirmDialog}
-                        onClose={() => setShowConfirmDialog(false)}
-                        onConfirm={confirmEmailChange}
-                        title="Confirm Email Change"
-                        message={
-                            <p>
-                                Are you sure you want to change your email from{' '}
-                                <span className="font-medium">{currentEmail}</span> to{' '}
-                                <span className="font-medium">{newEmail}</span>?
-                            </p>
-                        }
-                    />
+                        </div>
+                    )}
                 </div>
             </div>
+
+            <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirm Email Change</DialogTitle>
+                        <DialogDescription className="pt-4">
+                            <div className="flex items-center justify-between p-4 bg-muted rounded-lg mb-4">
+                                <span className="text-sm">{currentEmail}</span>
+                                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm font-medium">{newEmail}</span>
+                            </div>
+                            Are you sure you want to change your email address? You'll need to verify your new email before the change takes effect.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowConfirmDialog(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={confirmEmailChange}
+                            disabled={loading}
+                        >
+                            Confirm Change
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 } 

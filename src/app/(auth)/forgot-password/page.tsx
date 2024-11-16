@@ -1,19 +1,29 @@
 'use client'
 
 import { useState } from 'react'
-import { inter } from '@/app/ui/fonts'
 import Link from 'next/link'
 import { resetPassword } from '@/app/(auth)/actions'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle, CheckCircle2 } from "lucide-react"
 
 export default function ForgotPasswordPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
+    const [email, setEmail] = useState('')
 
-    async function handleSubmit(formData: FormData) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault()
         setError(null)
         setLoading(true)
         setSuccess(false)
+
+        const formData = new FormData()
+        formData.append('email', email)
 
         const result = await resetPassword(formData)
 
@@ -27,86 +37,65 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
-                <div className="text-center">
-                    <h2 className={`${inter.className} text-3xl font-bold text-gray-900`}>
-                        Reset your password
-                    </h2>
-                    <p className="mt-2 text-sm text-gray-600">
-                        Enter your email address and we'll send you a link to reset your password.
-                    </p>
-                </div>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+            <Card className="w-full max-w-md">
+                <CardHeader className="space-y-1">
+                    <CardTitle className="text-2xl font-bold">Reset password</CardTitle>
+                    <CardDescription>
+                        Enter your email address and we'll send you a link to reset your password
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {error && (
+                        <Alert variant="destructive" className="mb-6">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
 
-                {error && (
-                    <div className="bg-red-50 border-l-4 border-red-400 p-4">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                </svg>
+                    {success ? (
+                        <Alert className="mb-6 border-green-500 text-green-700">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <AlertDescription>
+                                Check your email for a link to reset your password. If it doesn't appear within a few minutes, check your spam folder.
+                            </AlertDescription>
+                        </Alert>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email address</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="m@example.com"
+                                    required
+                                />
                             </div>
-                            <div className="ml-3">
-                                <p className="text-sm text-red-700">{error}</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
-                {success ? (
-                    <div className="bg-green-50 border-l-4 border-green-400 p-4">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                            <div className="ml-3">
-                                <p className="text-sm text-green-700">
-                                    Check your email for a link to reset your password.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <form className="mt-8 space-y-6" action={handleSubmit}>
-                        <div>
-                            <label
-                                htmlFor="email"
-                                className="block text-sm font-medium text-gray-700"
-                            >
-                                Email address
-                            </label>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            />
-                        </div>
-
-                        <div>
-                            <button
+                            <Button
                                 type="submit"
+                                className="w-full"
                                 disabled={loading}
-                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {loading ? 'Sending...' : 'Send reset link'}
-                            </button>
-                        </div>
-
-                        <div className="text-center">
-                            <Link
-                                href="/login"
-                                className="text-sm text-indigo-600 hover:text-indigo-500"
-                            >
-                                Back to login
-                            </Link>
-                        </div>
-                    </form>
-                )}
-            </div>
+                                {loading ? "Sending link..." : "Send reset link"}
+                            </Button>
+                        </form>
+                    )}
+                </CardContent>
+                <CardFooter>
+                    <div className="text-sm text-muted-foreground">
+                        Remember your password?{' '}
+                        <Link
+                            href="/login"
+                            className="text-primary hover:underline"
+                        >
+                            Sign in
+                        </Link>
+                    </div>
+                </CardFooter>
+            </Card>
         </div>
     )
 } 

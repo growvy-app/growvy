@@ -97,6 +97,10 @@ export default function VerifyCode() {
         }
     }
 
+    const setInputRef = (index: number) => (el: HTMLInputElement | null) => {
+        inputs.current[index] = el
+    }
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg text-center">
@@ -126,7 +130,7 @@ export default function VerifyCode() {
                     {[0, 1, 2, 3].map((i) => (
                         <input
                             key={i}
-                            ref={el => inputs.current[i] = el}
+                            ref={setInputRef(i)}
                             type="text"
                             maxLength={1}
                             className="w-14 h-14 text-center text-2xl font-semibold border-2 rounded-lg focus:border-indigo-500 focus:ring-indigo-500"
