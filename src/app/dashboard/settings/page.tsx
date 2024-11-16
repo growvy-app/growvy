@@ -33,6 +33,10 @@ export default function SettingsPage() {
 
         if (searchParams.get('success') === 'email-change') {
             setSuccess(true)
+            setError(null)
+        } else if (searchParams.get('error') === 'email-change') {
+            setError(searchParams.get('message') || 'Error changing email')
+            setSuccess(false)
         }
     }, [searchParams])
 

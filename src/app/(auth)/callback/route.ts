@@ -3,19 +3,31 @@ import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
     const requestUrl = new URL(request.url)
-    const code = requestUrl.searchParams.get('code')
-    const next = requestUrl.searchParams.get('next') ?? '/dashboard'
+    const token_hash = requestUrl.searchParams.get('token_hash')
     const type = requestUrl.searchParams.get('type')
+    const next = requestUrl.searchParams.get('next') ?? '/dashboard'
 
-    if (code) {
+    if (token_hash && type) {
         const supabase = await createClient()
 
-        // Exchange the code for a session
-        await supabase.auth.exchangeCodeForSession(code)
+        // Exchange the token hash for a session
+        const { error } = await supabase.auth.verifyOtp({
+            type,
+            token_hash,
+        })
 
-        // If it's an email change confirmation, redirect to settings with success param
-        if (requestUrl.pathname.includes('/dashboard/settings')) {
-            return NextResponse.redirect(`${requestUrl.origin}/dashboard/settings?success=email-change`)
+        if (error) {
+            // If there was an error during email change
+            return NextResponse.redirect(
+                `${requestUrl.origin}/dashboard/settings?error=email-change&message=${error.message}`
+            )
+        }
+
+        // If it's an email change confirmation
+        if (type === 'email_change') {
+            return NextResponse.redirect(
+                `${requestUrl.origin}/dashboard/settings?success=email-change`
+            )
         }
 
         // For other auth flows (password reset, etc), redirect to the next URL
