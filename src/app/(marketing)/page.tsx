@@ -23,7 +23,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <section className="h-[300svh] border-t">
+      <section className="h-[300svh]">
 
       </section>
     </>
